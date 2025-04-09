@@ -8,6 +8,8 @@ export default function Room() {
   const [params] = useSearchParams();
   const username = params.get("username");
 
+  const navigate = useNavigate();
+
   const { joinRoom, leaveRoom, sendMessage, messages, users } = useChatStore();
 
   const [input, setInput] = useState("");
@@ -17,6 +19,11 @@ export default function Room() {
     joinRoom(roomId, username);
     return () => leaveRoom();
   }, [roomId, username]);
+
+  //check if roomId and username are not null
+  if (!roomId || !username) {
+    navigate("/");
+  }
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -34,8 +41,6 @@ export default function Room() {
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
   };
-
-  const navigate = useNavigate();
 
   return (
     <>
