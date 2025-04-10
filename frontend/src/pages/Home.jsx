@@ -20,11 +20,11 @@ export default function Home() {
 
   const validateForm = () => {
     if (!username.trim()) {
-      toast.error("Please enter a username.");
+      toast("Please enter a username.");
       return false;
     }
     if (!roomId.trim()) {
-      toast.error("Please enter a room ID.");
+      toast("Please enter a room ID.");
       return false;
     }
 

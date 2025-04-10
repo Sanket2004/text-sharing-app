@@ -1,122 +1,139 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useChatStore } from "../stores/chatStore";
 import { toast } from "react-toastify";
+import {
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  LogOut,
+  SendIcon,
+  Users,
+  Users2,
+  UsersIcon,
+  X,
+} from "lucide-react";
 
 export default function Room() {
   const { roomId } = useParams();
   const [params] = useSearchParams();
   const username = params.get("username");
-
   const navigate = useNavigate();
 
   const { joinRoom, leaveRoom, sendMessage, messages, users } = useChatStore();
 
   const [input, setInput] = useState("");
-  const messagesEndRef = useRef(null);
+  const containerRef = useRef(null);
+  const endRef = useRef(null);
+  const [showScroll, setShowScroll] = useState(false);
+  const [showUsers, setShowUsers] = useState(false);
 
   useEffect(() => {
+    if (!roomId || !username) {
+      navigate("/");
+      return;
+    }
     joinRoom(roomId, username);
     return () => leaveRoom();
   }, [roomId, username]);
 
-  //check if roomId and username are not null
-  if (!roomId || !username) {
-    navigate("/");
-  }
+  useEffect(() => {
+    const container = containerRef.current;
+    const handleScroll = () => {
+      if (!container) return;
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      setShowScroll(scrollTop + clientHeight < scrollHeight - 100);
+    };
+
+    container?.addEventListener("scroll", handleScroll);
+    return () => container?.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleSend = () => {
-    if (input.length === 0) {
-      toast.error("Please enter a message.");
+    if (!input.trim()) {
+      toast("Message can't be empty.");
       return;
     }
-    sendMessage(input);
+    sendMessage(input.trim());
     setInput("");
   };
 
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
+    toast("Copied to clipboard");
   };
 
+  const scrollToTop = () =>
+    containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  const scrollToBottom = () =>
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+
   return (
-    <>
-      <section className="min-h-screen flex flex-col items-center justify-start p-6">
-        <div className="mx-auto max-w-screen-xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-14">
-          <div className="text-center">
-            <h1 className="text-2xl sm:text-3xl font-black text-gray-800 font-serif">
-              Room{" "}
-              <span className="text-transparent bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text">
-                #{roomId}
-              </span>
-            </h1>
-            <p className="text-sm text-gray-500 mt-2">
-              You are logged in as <strong>{username}</strong>
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 md:gap-x-4 mt-6">
-            <div className="bg-white border rounded-lg shadow-sm p-4 h-[500px] overflow-y-auto col-span-2">
-              {messages.map((msg, index) => {
-                const isOwnMessage = msg.username === username;
+    <div className="flex flex-col h-screen bg-[#FAFAFA] font-sans">
+      {/* Header */}
+      <header className="p-4 border-b flex items-center justify-between bg-white sticky top-0 z-10">
+        <div className="text-gray-700 font-bold">
+          Room: <span className="font-medium">#{roomId}</span>
+        </div>
+        <div className="flex items-center gap-4">
+          {/* Show users toggle on mobile */}
+          <button
+            onClick={() => setShowUsers(true)}
+            className="md:hidden text-gray-600 hover:text-black"
+          >
+            <UsersIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => {
+              leaveRoom();
+              navigate("/");
+            }}
+            className="text-red-500 flex items-center gap-1 text-xs font-medium hover:underline"
+          >
+            <LogOut className="w-4 h-4" /> Leave
+          </button>
+        </div>
+      </header>
 
-                return (
-                  <div
-                    key={index}
-                    className={`mb-4 flex items-start gap-4 max-w-full ${
-                      isOwnMessage ? "flex-row-reverse" : ""
-                    }`}
-                  >
-                    {/* Avatar */}
-                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-blue-500 text-white text-sm">
-                      {msg.username?.[0].toUpperCase()}
-                    </div>
+      {/* Main Content Section */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Messages */}
+        <main
+          ref={containerRef}
+          className="flex-1 p-4 overflow-y-auto relative"
+        >
+          <div className="max-w-screen-lg space-y-4 mx-auto relative">
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                className="group border rounded-md bg-white px-4 py-3 shadow-sm text-sm relative"
+              >
+                <div className="text-gray-900 whitespace-pre-wrap break-words">
+                  {msg.message}
+                </div>
+                <div className="text-[11px] text-gray-400 mt-1">
+                  @{msg.username} •{" "}
+                  {new Date(msg.createdAt).toLocaleTimeString()}
+                </div>
+                <button
+                  onClick={() => handleCopy(msg.message)}
+                  className="absolute top-2 right-2 text-gray-400 hover:text-black opacity-0 group-hover:opacity-100 transition"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+            <div ref={endRef} />
 
-                    {/* Message Content */}
-                    <div className="w-max max-w-[80%] group relative">
-                      <pre
-                        className={`px-4 py-2 rounded-bl-md whitespace-pre-wrap break-words overflow-auto font-sans w-full ${
-                          isOwnMessage
-                            ? "bg-gradient-to-r from-blue-500/10 to-green-500/10 rounded-s-md text-black rounded-br-md"
-                            : "bg-[rgba(0,0,0,0.02)] rounded-e-md"
-                        }`}
-                      >
-                        {msg.message}
-                      </pre>
-
-                      {/* Copy Button on Hover */}
-                      <button
-                        onClick={() => {
-                          handleCopy(msg.message);
-                          toast.success("Message copied to clipboard.");
-                        }}
-                        className="absolute top-2 right-2 text-xs bg-white/70 backdrop-blur-sm border border-gray-300 rounded px-2 py-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200"
-                      >
-                        Copy
-                      </button>
-
-                      {/* Message Metadata */}
-                      <div
-                        className={`text-xs mt-1 text-gray-500 ${
-                          isOwnMessage ? "text-right" : ""
-                        }`}
-                      >
-                        @{msg.username} |{" "}
-                        {new Date(msg.createdAt).toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-
-              <div ref={messagesEndRef} />
-            </div>
-            <div className="flex gap-4 flex-col w-full">
+            {/* Message Input */}
+            <footer className="bg-white flex items-start sticky bottom-0 z-10 border-2 rounded-xl overflow-hidden w-full max-w-screen-lg mx-auto">
               <textarea
+                rows={5}
                 value={input}
-                rows={8}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
@@ -124,44 +141,81 @@ export default function Room() {
                     handleSend();
                   }
                 }}
-                placeholder="Type a message..."
-                className="flex-1 p-3 w-full rounded border border-gray-300 focus:shadow-[5px_5px_0_rgba(0,0,0,0.1)] transition-all  outline-none sm:text-sm resize-none"
+                placeholder="Type something..."
+                className="flex-1 px-4 py-3 h-full w-full text-sm focus:outline-none resize-none"
               />
               <button
                 onClick={handleSend}
-                className="w-full bg-black text-white px-8 py-3 rounded outline-none border-collapse transition-all uppercase tracking-wider focus:shadow-[5px_5px_0_rgba(0,0,0,0.1)] text-sm"
+                className="bg-black text-white p-3 m-2 rounded-full text-sm hover:bg-gray-900 transition"
               >
-                Send
+                <SendIcon size={15} />
               </button>
-            </div>
+            </footer>
+
+            {/* Scroll Controls */}
+            {showScroll && (
+              <div className="sticky w-max bottom-40 float-end flex flex-col gap-2 z-50">
+                <button
+                  onClick={scrollToTop}
+                  className="bg-black text-white p-2 rounded-full shadow hover:bg-gray-900 transition"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={scrollToBottom}
+                  className="bg-black text-white p-2 rounded-full shadow hover:bg-gray-900 transition"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
-          <div className="pt-4 text-sm text-gray-600">
-            <strong>Users in this room:</strong>{" "}
-            {users.length > 0 ? users.join(", ") : "No one yet"}
-          </div>
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 flex-wrap">
+        </main>
+
+        {/* Sidebar (desktop only) */}
+        <aside className="hidden md:block w-64 border-l bg-white p-4 pt-10 text-sm">
+          <h2 className="font-bold mb-4 text-gray-800">Active Users</h2>
+          <ul className="space-y-2 text-gray-600 overflow-auto h-full pb-4 pt-2">
+            {users.map((user, i) => (
+              <li key={i} className="flex items-center gap-2 border-b-2 pb-2">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                  {user.toUpperCase()[0]}
+                </div>
+                <span className="font-medium">@{user}</span>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      </div>
+
+      {/* Mobile Drawer */}
+      <div
+        className={`fixed inset-0 z-50 md:hidden ${
+          showUsers ? "" : "translate-x-full"
+        } transition-all`}
+      >
+        <div className="absolute right-0 top-0 w-full max-w-80 bg-white h-full p-4 shadow-xl">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-bold text-gray-800 text-sm">Active Users</h2>
             <button
-              onClick={() => {
-                handleCopy(roomId);
-                toast.success("Room ID copied to clipboard.");
-              }}
-              className="w-full bg-black text-white px-8 py-3 rounded outline-none border-collapse transition-all uppercase tracking-wider text-sm focus:shadow-[5px_5px_0_rgba(0,0,0,0.1)]"
+              onClick={() => setShowUsers(false)}
+              className="text-gray-500 hover:text-black"
             >
-              Copy Room ID
-            </button>
-            <button
-              onClick={() => {
-                leaveRoom(roomId);
-                navigate("/");
-              }}
-              className="w-full bg-red-600 text-white px-8 py-3 rounded outline-none border-collapse transition-all uppercase tracking-wider text-sm focus:shadow-[5px_5px_0_rgba(0,0,0,0.1)]"
-            >
-              Leave Room
+              <X className="w-5 h-5" />
             </button>
           </div>
+          <ul className="space-y-2 text-gray-600 text-sm overflow-auto h-full pb-4 pt-2">
+            {users.map((user, i) => (
+              <li key={i} className="flex items-center gap-2 border-b-2 pb-2">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                  {user.toUpperCase()[0]}
+                </div>
+                <span className="font-medium">@{user}</span>
+              </li>
+            ))}
+          </ul>
         </div>
-      </section>
-      <div className="fixed bottom-0 w-full h-24 z-50 bg-gradient-to-t from-white via-white/70 to-white/0 pointer-events-none" />
-    </>
+      </div>
+    </div>
   );
 }
