@@ -26,6 +26,7 @@ export default function Room() {
     users,
     usernameTaken,
     checkUsername,
+    loading,
   } = useChatStore();
 
   const [input, setInput] = useState("");
@@ -167,27 +168,33 @@ export default function Room() {
           className="flex-1 p-4 overflow-y-auto relative "
         >
           <div className="max-w-screen-lg mx-auto">
-            <div className="min-h-[70vh] space-y-4">
-              {messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className="group border bg-white rounded-md px-4 py-3 shadow-sm text-sm relative"
-                >
-                  <div className="text-gray-900 whitespace-pre-wrap break-words">
-                    {msg.message}
-                  </div>
-                  <div className="text-[11px] text-gray-400 mt-1">
-                    @{msg.username} •{" "}
-                    {new Date(msg.createdAt).toLocaleTimeString()}
-                  </div>
-                  <button
-                    onClick={() => handleCopy(msg.message)}
-                    className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 opacity-0 group-hover:opacity-100 transition"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </button>
+            <div className="min-h-[70vh] space-y-4 flex flex-col items-center justify-center">
+              {loading ? (
+                <div className="text-center text-gray-500">
+                  Loading messages...
                 </div>
-              ))}
+              ) : (
+                messages.map((msg, i) => (
+                  <div
+                    key={i}
+                    className="group border bg-white rounded-md px-4 py-3 shadow-sm text-sm relative w-full"
+                  >
+                    <div className="text-gray-900 whitespace-pre-wrap break-words">
+                      {msg.message}
+                    </div>
+                    <div className="text-[11px] text-gray-400 mt-1">
+                      @{msg.username} •{" "}
+                      {new Date(msg.createdAt).toLocaleTimeString()}
+                    </div>
+                    <button
+                      onClick={() => handleCopy(msg.message)}
+                      className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 opacity-0 group-hover:opacity-100 transition"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))
+              )}
               <div ref={endRef} />
             </div>
 
@@ -267,7 +274,7 @@ export default function Room() {
         }`}
       >
         <div className="absolute right-0 top-0 w-full max-w-80 bg-white h-full p-4 shadow-xl">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center">
             <h2 className="font-bold text-gray-800 text-sm">Active Users</h2>
             <button
               onClick={() => setShowUsers(false)}
@@ -276,6 +283,7 @@ export default function Room() {
               <X className="w-5 h-5" />
             </button>
           </div>
+          <hr className="my-4"/>
           <ul className="space-y-2 text-gray-600 text-sm overflow-auto h-full">
             {renderUsersList()}
           </ul>

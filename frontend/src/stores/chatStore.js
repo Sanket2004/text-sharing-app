@@ -11,11 +11,13 @@ export const useChatStore = create((set, get) => ({
   users: [],
   messages: [],
   usernameTaken: false,
+  loading: false,
 
   checkUsername: (roomId, username) => {
     return new Promise((resolve) => {
+      set({ loading: true });
       socket.emit("usernameTaken", { roomId, username }, (isTaken) => {
-        set({ usernameTaken: isTaken });
+        set({ usernameTaken: isTaken, loading: false });
         resolve(isTaken); // now it can be awaited
       });
     });
@@ -34,6 +36,7 @@ export const useChatStore = create((set, get) => ({
       toast.error("Username must be at least 3 characters long.");
       return;
     }
+    set({ loading: true });
     socket.emit("joinRoom", { roomId, username });
     set({ roomId, username });
   },
@@ -41,7 +44,7 @@ export const useChatStore = create((set, get) => ({
   leaveRoom: () => {
     const { roomId } = get();
     socket.emit("leaveRoom", roomId);
-    set({ roomId: null, messages: [] });
+    set({ roomId: null, messages: [], loading: false });
   },
 
   sendMessage: (message) => {
@@ -50,10 +53,12 @@ export const useChatStore = create((set, get) => ({
       return;
     }
     const { roomId } = get();
+    set({ loading: true });
     socket.emit("sendMessage", { roomId, message });
+    set({ loading: false });
   },
 
-  setMessages: (messages) => set({ messages }),
+  setMessages: (messages) => set({ messages, loading: false }),
 
   setUsers: (users) => set({ users }),
 
@@ -80,4 +85,7 @@ socket.on("users", (users) => {
 
 socket.on("error", (error) => {
   toast.error(error);
+  useChatStore.getState().setError(error);
+  useChatStore.getState().set({ loading: false });
 });
+
