@@ -13,6 +13,7 @@ app.use(
     origin: process.env.FRONTEND_URL,
   })
 );
+
 app.use(express.json());
 
 app.get("/api/health", (req, res) =>
