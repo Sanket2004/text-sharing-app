@@ -4,17 +4,17 @@ const roomUsers = new Map();
 
 const configureSocket = (io) => {
   io.on("connection", (socket) => {
-    socket.on("joinRoom", async ({ roomId, username }) => {
-      // Check if username is already taken in this room
-      const existingUsers = roomUsers.get(roomId);
-      if (
-        existingUsers &&
-        Array.from(existingUsers.values()).includes(username)
-      ) {
-        socket.emit("error", "Username already taken in this room, please choose another one.");
-        return;
-      }
 
+    
+    socket.on("usernameTaken", ({ roomId, username }, callback) => {
+      const existingUsers = roomUsers.get(roomId);
+      const isTaken =
+        existingUsers && Array.from(existingUsers.values()).includes(username);
+      callback(isTaken);
+    });
+    
+
+    socket.on("joinRoom", async ({ roomId, username }) => {
       socket.join(roomId);
       socket.data.roomId = roomId;
       socket.data.username = username;
@@ -39,12 +39,7 @@ const configureSocket = (io) => {
       });
       await msg.save();
 
-      io.to(roomId).emit("receiveMessage", {
-        senderId: socket.id,
-        username: socket.data.username,
-        message,
-        timestamp: msg.createdAt,
-      });
+      io.to(roomId).emit("receiveMessage", msg);
     });
 
     socket.on("leaveRoom", (roomId) => {
