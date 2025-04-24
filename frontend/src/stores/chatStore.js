@@ -10,8 +10,30 @@ export const useChatStore = create((set, get) => ({
   username: "",
   users: [],
   messages: [],
+  usernameTaken: false,
+
+  checkUsername: (roomId, username) => {
+    return new Promise((resolve) => {
+      socket.emit("usernameTaken", { roomId, username }, (isTaken) => {
+        set({ usernameTaken: isTaken });
+        resolve(isTaken); // now it can be awaited
+      });
+    });
+  },
 
   joinRoom: (roomId, username) => {
+    if (!roomId || !username) {
+      toast.error("Please enter a room ID and username.");
+      return;
+    }
+    if (roomId.length < 3) {
+      toast.error("Room ID must be at least 3 characters long.");
+      return;
+    }
+    if (username.length < 3) {
+      toast.error("Username must be at least 3 characters long.");
+      return;
+    }
     socket.emit("joinRoom", { roomId, username });
     set({ roomId, username });
   },
@@ -23,6 +45,10 @@ export const useChatStore = create((set, get) => ({
   },
 
   sendMessage: (message) => {
+    if (!message.trim()) {
+      toast.error("Message cannot be empty.");
+      return;
+    }
     const { roomId } = get();
     socket.emit("sendMessage", { roomId, message });
   },

@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Geist", "sans-serif"],
+        sans: ["National Park", "sans-serif"],
         serif: ["Bricolage Grotesque", "serif"],
       },
     },

@@ -8,11 +8,8 @@ export default function Home() {
   const [username, setUsername] = useState("");
   const navigate = useNavigate();
 
-  const { joinRoom } = useChatStore();
-
-  const handleJoin = () => {
+  const handleJoin = async () => {
     if (!validateForm()) return;
-    joinRoom(roomId, username);
     if (roomId.trim() && username.trim()) {
       navigate(`/room/${roomId}?username=${username}`);
     }
@@ -20,11 +17,11 @@ export default function Home() {
 
   const validateForm = () => {
     if (!username.trim()) {
-      toast("Please enter a username.");
+      toast.warning("Please enter a username.");
       return false;
     }
     if (!roomId.trim()) {
-      toast("Please enter a room ID.");
+      toast.warning("Please enter a room ID.");
       return false;
     }
 
@@ -36,12 +33,14 @@ export default function Home() {
       <section className="flex items-center justify-center min-h-[70vh]">
         <div className="mx-auto max-w-screen-xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
           <div className="max-w-prose text-center flex items-center justify-center flex-col mx-auto">
-            <h1 className="text-4xl text-white px-2 bg-gradient-to-r from-green-500 to-blue-500 sm:text-5xl font-bold -skew-y-3">TextRoom</h1>
-            <h1 className="mt-4 text-4xl text-gray-900 sm:text-5xl font-serif font-black ">
+            <h1 className="text-4xl text-white px-2 bg-gradient-to-r from-green-500 to-blue-500 sm:text-5xl font-bold -skew-y-3">
+              TextRoom
+            </h1>
+            <h1 className="mt-4 text-4xl text-gray-900 sm:text-5xl font-black ">
               Instant{" "}
               <span className="text-transparent bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text relative">
                 Text Sharing
-                <div className="bg-gradient-to-r from-green-500 to-blue-500 h-1 w-44 absolute -bottom-3 -right-2 -skew-y-3" />
+                <div className="bg-gradient-to-r from-green-500 to-blue-500 h-1 w-44 absolute -bottom-2 right-0" />
               </span>
             </h1>
 
@@ -51,7 +50,7 @@ export default function Home() {
             </p>
 
             <button
-              className="bg-black text-white px-8 py-3 rounded mt-6 shadow-[8px_8px_0_rgba(0,0,0,0.1)] focus:shadow-[5px_5px_0_rgba(0,0,0,0.1)] hover:shadow-[5px_5px_0_rgba(0,0,0,0.1)] outline-none border-collapse transition-all uppercase tracking-wider text-sm"
+              className="bg-black text-white px-8 py-3 rounded-xl mt-6 shadow-[8px_8px_0_rgba(0,0,0,0.1)] focus:shadow-[5px_5px_0_rgba(0,0,0,0.1)] hover:shadow-[5px_5px_0_rgba(0,0,0,0.1)] outline-none border-collapse transition-all font-bold text-sm"
               onClick={() => window.scrollTo(0, document.body.scrollHeight)}
             >
               Explore Rooms
@@ -86,7 +85,7 @@ export default function Home() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter username"
-                className="mt-0.5 p-3 w-full rounded border border-gray-300 transition-all focus:shadow-[5px_5px_0_rgba(0,0,0,0.1)] outline-none sm:text-sm"
+                className="mt-0.5 p-3 w-full rounded-xl border border-gray-300 transition-all focus:shadow-[5px_5px_0_rgba(0,0,0,0.1)] outline-none sm:text-sm"
               />
             </label>
 
@@ -100,12 +99,12 @@ export default function Home() {
                 value={roomId}
                 onChange={(e) => setRoomId(e.target.value)}
                 placeholder="Enter Room ID"
-                className="mt-0.5 p-3 w-full rounded border border-gray-300 transition-all focus:shadow-[5px_5px_0_rgba(0,0,0,0.1)] outline-none sm:text-sm"
+                className="mt-0.5 p-3 w-full rounded-xl border border-gray-300 transition-all focus:shadow-[5px_5px_0_rgba(0,0,0,0.1)] outline-none sm:text-sm"
               />
             </label>
             <button
               onClick={handleJoin}
-              className="bg-black text-white px-8 py-3 mt-6 focus:shadow-[5px_5px_0_rgba(0,0,0,0.1)] outline-none border-collapse transition-all rounded uppercase tracking-wider text-sm"
+              className="bg-black text-white px-8 py-3 mt-6 focus:shadow-[5px_5px_0_rgba(0,0,0,0.1)] outline-none border-collapse transition-all rounded-xl font-bold text-sm"
             >
               Join or Create Room
             </button>
